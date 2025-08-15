@@ -1,0 +1,36 @@
+# Étape de build
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copier les fichiers de configuration
+COPY package*.json ./
+COPY nest-cli.json ./
+COPY tsconfig*.json ./
+
+# Copier les fichiers nécessaires pour le person-service
+COPY apps/person-service ./apps/person-service
+COPY libs ./libs
+
+# Installer les dépendances et builder
+RUN npm ci
+RUN npm run build person-service
+
+# Étape de production
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copier les fichiers construits et les dépendances
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/person-service/prisma ./prisma
+COPY package.json .
+
+# Installer Prisma Client
+RUN npm install @prisma/client
+RUN npx prisma generate
+
+EXPOSE 3002
+
+CMD ["node", "dist/apps/person-service/main"]

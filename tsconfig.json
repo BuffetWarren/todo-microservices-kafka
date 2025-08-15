@@ -27,6 +27,12 @@
       ],
       "@app/common/*": [
         "libs/common/src/*"
+      ],
+      "@app/kafka": [
+        "libs/kafka/src"
+      ],
+      "@app/kafka/*": [
+        "libs/kafka/src/*"
       ]
     }
   }

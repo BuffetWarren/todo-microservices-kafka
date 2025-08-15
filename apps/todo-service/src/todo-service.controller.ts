@@ -5,8 +5,13 @@ import { TodoServiceService } from './todo-service.service';
 export class TodoServiceController {
   constructor(private readonly todoServiceService: TodoServiceService) {}
 
-  @Get()
+  @Get('/')
   getHello(): string {
     return this.todoServiceService.getHello();
+  }
+
+  @Get('/health')
+  healthCheck() {
+    return { status: 'OK', service: 'todo-service' };
   }
 }
