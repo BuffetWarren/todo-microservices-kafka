@@ -123,7 +123,7 @@ export class PersonService {
 
         // Construction de l'ordre de tri
         const orderCondition = {
-            [orderBy]: orderBy
+            [sortBy]: orderBy
         };
 
         try {
