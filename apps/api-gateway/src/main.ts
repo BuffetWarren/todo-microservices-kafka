@@ -7,18 +7,18 @@ async function bootstrap() {
 
   // app.setGlobalPrefix('api/');
   const todoProxy = createProxyMiddleware({
-    target: 'http://localhost:3001',
+    target: 'http://todo-service:3001',
     changeOrigin: true,
     pathRewrite: {
       '^/todos': '',
-    }
+    },
   });
 
   const personProxy = createProxyMiddleware({
-    target: 'http://localhost:3002',
+    target: 'http://person-service:3002',
     changeOrigin: true,
     pathRewrite: {
-      '^/todos': '',
+      '^/persons': '',
     }
   });
 

@@ -5,8 +5,13 @@ import { PersonServiceService } from './person-service.service';
 export class PersonServiceController {
   constructor(private readonly personServiceService: PersonServiceService) {}
 
-  @Get()
+  @Get('/')
   getHello(): string {
     return this.personServiceService.getHello();
+  }
+
+  @Get('/health')
+  healthCheck() {
+    return { status: 'OK', service: 'person-service' };
   }
 }
