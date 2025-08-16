@@ -31,6 +31,6 @@ COPY package.json .
 RUN npm install @prisma/client
 RUN npx prisma generate
 
-EXPOSE 3001
+EXPOSE ${TODO_SERVICE_PORT}
 
 CMD ["node", "dist/apps/todo-service/main"]
