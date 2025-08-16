@@ -7,6 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY nest-cli.json ./
 COPY tsconfig*.json ./
+COPY .env ./app/.env
 
 # Copier les fichiers nécessaires pour le todo-service
 COPY apps/todo-service ./apps/todo-service
