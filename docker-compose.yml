@@ -2,7 +2,7 @@ services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.3.0
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_PORT}
 
   kafka:
     image: confluentinc/cp-kafka:7.3.0
@@ -21,18 +21,18 @@ services:
   postgres-todo:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: todos_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${TODO_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - todo-db-data:/var/lib/postgresql/data
 
   postgres-person:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: persons_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${PERSON_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - person-db-data:/var/lib/postgresql/data
 
@@ -41,51 +41,51 @@ services:
       context: .
       dockerfile: Dockerfile.api-gateway
     ports:
-      - "3000:3000"
+      - ${API_GATEWAY_PORT}:${API_GATEWAY_PORT}
     depends_on:
       - todo-service
       - person-service
     environment:
-      TODO_SERVICE_URL: http://todo-service:3001
-      PERSON_SERVICE_URL: http://person-service:3002
+      TODO_SERVICE_URL: ${TODO_SERVICE_URL}
+      PERSON_SERVICE_URL: ${PERSON_SERVICE_URL}
   
   todo-service:
     build:
       context: .
       dockerfile: Dockerfile.todo-service
     ports:
-      - "3001:3001"
+      - ${TODO_SERVICE_PORT}:${TODO_SERVICE_PORT}
     depends_on:
       - postgres-todo
       - kafka
     environment:
-      DATABASE_URL: "postgresql://postgres:postgres@postgres-todo:5432/todos_db?schema=public"
-      KAFKA_BROKER: "kafka:9092"
+      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-todo:5432/${TODO_DB}?schema=public"
+      KAFKA_BROKER: ${KAFKA_BROKER}
   
   person-service:
     build:
       context: .
       dockerfile: Dockerfile.person-service
     ports:
-      - "3002:3002"
+      - ${PERSON_SERVICE_PORT}:${PERSON_SERVICE_PORT}
     depends_on:
       - postgres-person
       - kafka
     environment:
-      DATABASE_URL: "postgresql://postgres:postgres@postgres-person:5432/persons_db?schema=public"
-      KAFKA_BROKER: "kafka:9092"
+      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-person:5432/persons_db?schema=public"
+      KAFKA_BROKER: ${KAFKA_BROKER}
   
   notification-service:
     build:
       context: .
       dockerfile: Dockerfile.notification-service
     ports:
-      - "3003:3003"  # Port HTTP
-      - "3004:3004"  # Port WebSocket
+      - ${NOTIFICATION_HTTP_PORT}:${NOTIFICATION_HTTP_PORT} # Port HTTP
+      - ${NOTIFICATION_WS_PORT}:3004  # Port WebSocket
     depends_on:
       - kafka
     environment:
-      KAFKA_BROKER: "kafka:9092"
+      KAFKA_BROKER: ${KAFKA_BROKER}
       WS_PORT: 3004
   
 volumes:

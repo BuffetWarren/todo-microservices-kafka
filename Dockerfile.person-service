@@ -13,8 +13,9 @@ COPY apps/person-service ./apps/person-service
 COPY libs ./libs
 
 # Installer les dépendances et builder
-RUN npm ci
-RUN npm run build person-service
+RUN npm ci &&\
+    npx prisma generate --schema=./apps/person-service/prisma/schema.prisma &&\
+    npm run build person-service
 
 # Étape de production
 FROM node:18-alpine
@@ -31,6 +32,6 @@ COPY package.json .
 RUN npm install @prisma/client
 RUN npx prisma generate
 
-EXPOSE 3002
+EXPOSE ${PERSON_SERVICE_PORT}
 
 CMD ["node", "dist/apps/person-service/main"]

@@ -13,8 +13,8 @@ COPY apps/api-gateway ./apps/api-gateway
 COPY libs ./libs
 
 # Installer les dépendances et builder
-RUN npm ci
-RUN npm run build api-gateway
+RUN npm ci &&\
+    npm run build api-gateway
 
 # Étape de production
 FROM node:18-alpine
@@ -26,6 +26,6 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY package.json .
 
-EXPOSE 3000
+EXPOSE ${API_GATEWAY_PORT}
 
 CMD ["node", "dist/apps/api-gateway/main"]
