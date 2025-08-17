@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, InternalServerErrorException, NotFound
 import { PrismaClient } from "@prisma/client";
 import { PersonDto } from "./dto";
 import { PaginatedResponse, SearchQueryDto } from "./dto/search-query.dto";
-import { PrismaService } from "libs/common/prisma/prisma.service";
+import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class PersonService {

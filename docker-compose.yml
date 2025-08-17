@@ -72,7 +72,7 @@ services:
       - postgres-person
       - kafka
     environment:
-      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-person:5432/persons_db?schema=public"
+      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-person:5432/${PERSON_DB}?schema=public"
       KAFKA_BROKER: ${KAFKA_BROKER}
   
   notification-service:
