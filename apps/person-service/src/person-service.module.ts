@@ -4,13 +4,13 @@ import { PersonServiceService } from './person-service.service';
 import { PersonsController } from './modules/persons/persons.controller';
 import { PersonService } from './modules/persons/persons.service';
 import { ConfigModule } from '@nestjs/config';
-import { PersonsModule } from './modules/persons/person.module';
+import { PrismaService } from './modules/prisma/prisma.service';
 
 @Module({
   imports: [ConfigModule.forRoot({
       isGlobal: true,
-    }),PersonsModule],
+    })],
   controllers: [PersonServiceController, PersonsController],
-  providers: [PersonServiceService, PersonService],
+  providers: [PersonServiceService, PersonService, PrismaService],
 })
 export class PersonServiceModule {}

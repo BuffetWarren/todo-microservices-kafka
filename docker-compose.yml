@@ -59,7 +59,7 @@ services:
       - postgres-todo
       - kafka
     environment:
-      DATABASE_TODOS_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-todo:5432/${TODO_DB}?schema=public"
+      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-todo:5432/${TODO_DB}?schema=public"
       KAFKA_BROKER: ${KAFKA_BROKER}
   
   person-service:
@@ -72,7 +72,7 @@ services:
       - postgres-person
       - kafka
     environment:
-      DATABASE_PERSONS_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-person:5432/${PERSON_DB}?schema=public"
+      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-person:5432/${PERSON_DB}?schema=public"
       KAFKA_BROKER: ${KAFKA_BROKER}
   
   notification-service:

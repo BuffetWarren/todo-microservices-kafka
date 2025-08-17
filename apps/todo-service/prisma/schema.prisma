@@ -15,11 +15,22 @@ datasource db {
 }
 
 model Todo {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   title     String
-  isDone Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  priority  Priority  @default(MEDIUM)
+  labels    String[]  @default([])
+  personId  Int       @map("person_id")
+  isDone    Boolean   @default(false) @map("is_done")
+  startDate DateTime
+  endDate   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
 
   @@map("todos")
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
 }
