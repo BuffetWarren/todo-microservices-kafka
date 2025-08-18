@@ -9,7 +9,6 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
       datasources: {
         db: {
           url: config.get('DATABASE_URL')
-          // url: config.get('postgresql://$postgres:$postgres@localhost:5432/persons_db?schema=public')
         },
       },
     });
