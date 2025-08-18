@@ -1,11 +1,10 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
-import { PersonDto } from "./dto";
-import { PaginatedResponse, SearchQueryDto } from "./dto/search-query.dto";
 import { PrismaService } from "../prisma/prisma.service";
+import { PaginatedResponse, PersonDto, PersonFilterRequestDto } from "./types";
 
 @Injectable()
-export class PersonService {
+export class PersonsService {
     person: PrismaClient['person'];
     constructor(private prisma: PrismaService) {
         this.person = prisma.person;
@@ -13,8 +12,8 @@ export class PersonService {
 
     async createPerson(data: PersonDto) {
         const cleanData = {
-            name: data.name?.trim(),
-            email: data.email?.trim()
+            name: data.name.trim(),
+            email: data.email.trim()
         };
         try {
             return await this.person.create({ data: cleanData });
@@ -72,7 +71,7 @@ export class PersonService {
         return person;
     }
 
-    async fetchAll(query: SearchQueryDto) {
+    async fetchAll(query: PersonFilterRequestDto) {
         const { search, limit = 10, sortBy = 'createdAt', orderBy = 'desc' } = query;
         const searchCondition = search ? {
             OR: [
@@ -98,7 +97,7 @@ export class PersonService {
     }
 
 
-    async searchPaginated(query: SearchQueryDto): Promise<PaginatedResponse<any>> {
+    async searchPaginated(query: PersonFilterRequestDto): Promise<PaginatedResponse<any>> {
         const {
             search,
             page = 1,
