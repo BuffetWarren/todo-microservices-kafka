@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
-import { PaginatedResponse, PersonDto, PersonFilterRequestDto } from "./types";
+import { PaginatedResponse, PersonDto, PersonFilterRequestDto, PersonFiltersDto } from "./types";
 
 @Injectable()
 export class PersonsService {
@@ -71,52 +71,52 @@ export class PersonsService {
         return person;
     }
 
-    async fetchAll(query: PersonFilterRequestDto) {
-        const { search, limit = 10, sortBy = 'createdAt', orderBy = 'desc' } = query;
-        const searchCondition = search ? {
-            OR: [
-                { email: { contains: search, mode: 'insensitive' as const } },
-                { name: { contains: search, mode: 'insensitive' as const } },
-            ],
-        } : {};
-
-        const orderCondition = {
-            [sortBy]: orderBy
-        };
+    async selectMany(page: number = 1, limit: number = 10): Promise<PaginatedResponse<any>> {
 
         const validatedLimit = Math.min(Math.max(limit, 1), 100);
+        const validatedPage = Math.max(page, 1);
+        const skip = (validatedPage - 1) * validatedLimit;
 
-        const [data] = await Promise.all([
-            this.person.findMany({
-                where: searchCondition,
-                orderBy: orderCondition,
-                take: validatedLimit,
-            }),
-        ]);
-        return data;
+        try {
+            const [data, total] = await Promise.all([
+                this.person.findMany({
+                    skip,
+                    take: validatedLimit,
+                    orderBy: { createdAt: 'desc', }
+                }),
+                this.person.count()
+            ]);
+
+            const totalPages = Math.ceil(total / validatedLimit);
+
+            return {
+                data,
+                pagination: {
+                    page: validatedPage,
+                    limit: validatedLimit,
+                    total,
+                    totalPages
+                }
+            }
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to fetch persons');
+        }
+
     }
 
 
-    async searchPaginated(query: PersonFilterRequestDto): Promise<PaginatedResponse<any>> {
+    async fetchAll(query: PersonFilterRequestDto) {
         const {
             search,
-            page = 1,
             limit = 10,
             sortBy = 'createdAt',
             orderBy = 'desc'
         } = query;
 
-        // Validation supplémentaire côté service
-        const validatedLimit = Math.min(Math.max(limit, 1), 100);
-        const validatedPage = Math.max(page, 1);
-        const skip = (validatedPage - 1) * validatedLimit;
-
-
-        // Construction de la condition de recherche
         const searchCondition = search ? {
             OR: [
-                { email: { contains: search, mode: 'insensitive' as const } },
-                { name: { contains: search, mode: 'insensitive' as const } },
+                { email: { contains: search.toLowerCase(), mode: 'insensitive' as const } },
+                { name: { contains: search.toLowerCase(), mode: 'insensitive' as const } },
             ],
         } : {};
 
@@ -124,35 +124,90 @@ export class PersonsService {
         const orderCondition = {
             [sortBy]: orderBy
         };
+        const validatedLimit = Math.min(Math.max(limit, 1), 100);
+
+        const data = await this.person.findMany({
+            where: searchCondition,
+            orderBy: orderCondition,
+            take: validatedLimit
+        })
+
+        return data;
+    }
+
+    async filter(
+        page: number = 1,
+        limit: number = 10,
+        search?: string,
+        filters: PersonFiltersDto = new PersonFiltersDto(),
+        sortBy: string = 'createdAt',
+        orderBy: 'asc' | 'desc' = 'desc'
+    ): Promise<PaginatedResponse<any>> {
+        const validatedLimit = Math.min(Math.max(limit, 1), 100);
+        const validatedPage = Math.max(page, 1);
+        const skip = (validatedPage - 1) * validatedLimit;
+
+         // Construction de la condition WHERE
+        const where: Prisma.PersonWhereInput = {};
+
+        // Recherche générale
+        if (search) {
+            where.OR = [
+                { email: { contains: search.toLowerCase(), mode: 'insensitive' } },
+                { name: { contains: search.toLowerCase(), mode: 'insensitive' } },
+            ];
+        }
+
+        if (filters.name) {
+            where.name = { contains: filters.name, mode: 'insensitive' };
+        }
+
+        if (filters.email) {
+            where.email = { contains: filters.email, mode: 'insensitive' };
+        }
+
+         if (filters.createdAtStart || filters.createdAtEnd) {
+            where.createdAt = {
+                gte: filters.createdAtStart ? new Date(filters.createdAtStart) : undefined,
+                lte: filters.createdAtEnd ? new Date(filters.createdAtEnd) : undefined,
+            };
+        }
+
+        if (filters.updatedAtStart || filters.updatedAtEnd) {
+            where.updatedAt = {
+                gte: filters.updatedAtStart ? new Date(filters.updatedAtStart) : undefined,
+                lte: filters.updatedAtEnd ? new Date(filters.updatedAtEnd) : undefined,
+            };
+        }
+
+        const orderCondition: Prisma.PersonOrderByWithRelationInput = {
+            [sortBy]: orderBy
+        };
 
         try {
-            
-        const [data, total] = await Promise.all([
-            this.person.findMany({
-                where: searchCondition,
-                orderBy: orderCondition,
-                skip,
-                take: validatedLimit,
-            }),
-            this.person.count({
-                where: searchCondition,
-            })
-        ]);
+            const [data, total] = await Promise.all([
+                this.person.findMany({
+                    where,
+                    orderBy: orderCondition,
+                    skip,
+                    take: validatedLimit,
+                }),
+                this.person.count({ where })
+            ]);
 
-        const totalPages = Math.ceil(total / validatedLimit);
+            const totalPages = Math.ceil(total / validatedLimit);
 
-        return {
-            data,
-            pagination: {
-                page: validatedPage,
-                limit: validatedLimit,
-                total,
-                totalPages
-            },
-        };
-    } catch (error) {
+            return {
+                data,
+                pagination: {
+                    page: validatedPage,
+                    limit: validatedLimit,
+                    total,
+                    totalPages
+                }
+            };
+        } catch (error) {
             throw new InternalServerErrorException('Failed to search persons');
-        
         }
     }
 }
