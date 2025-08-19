@@ -1,15 +1,13 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, PartialType } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
 import {
     IsEmail,
-    IsIn,
     IsNotEmpty,
     IsNumber,
     IsOptional,
     IsString,
-    Max,
-    Min,
-    MinLength
+    MinLength,
+    ValidateNested
 } from "class-validator";
 
 export class PersonDto {
@@ -33,7 +31,9 @@ export class PersonDto {
     email: string;
 }
 
-export class PersonFilterDto {
+export class UpdatePersonDto extends PartialType(PersonDto) { }
+
+export class PersonFiltersDto {
     @ApiProperty({ required: false })
     @IsOptional()
     @IsString()
@@ -43,6 +43,26 @@ export class PersonFilterDto {
     @IsOptional()
     @IsString()
     email?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    createdAtStart?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    createdAtEnd?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    updatedAtStart?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    updatedAtEnd?: string;
 }
 
 export class PersonFilterRequestDto {
@@ -71,6 +91,12 @@ export class PersonFilterRequestDto {
     @IsOptional()
     @IsString()
     orderBy?: 'asc' | 'desc' = 'desc';
+
+    @ApiProperty({ type: () => PersonFiltersDto, required: false })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => PersonFiltersDto)
+    filters?: PersonFiltersDto = new PersonFiltersDto();
 }
 
 export interface PaginatedResponse<T> {
