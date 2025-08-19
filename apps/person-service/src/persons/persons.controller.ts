@@ -1,7 +1,9 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Put, UsePipes } from "@nestjs/common";
 import { PersonsService } from "./persons.service";
 import { PersonDto, PersonFilterRequestDto, UpdatePersonDto } from "./types";
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from "@nestjs/swagger";
+import { PersonDtoSchema, PersonFilterRequestDtoSchema, UpdatePersonDtoSchema } from "./validation";
+import { JoiValidationPipe } from "./JoiValidationPipe";
 
 @Controller()
 export class PersonsController {
@@ -16,6 +18,7 @@ export class PersonsController {
     @ApiResponse({ status: 201, description: 'Personne créée avec succès.' })
     @ApiResponse({ status: 400, description: 'Données invalides.' })
     @ApiBody({ type: PersonDto })
+     @UsePipes(new JoiValidationPipe(PersonDtoSchema))
     createPerson(@Body() createPersonDto: PersonDto) {
         return this.personService.createPerson(createPersonDto);
     }
@@ -30,6 +33,7 @@ export class PersonsController {
     @ApiResponse({ status: 400, description: 'Données invalides.' })
     @ApiResponse({ status: 404, description: 'Personne non trouvée.' })
     @ApiBody({ type: UpdatePersonDto })
+     @UsePipes(new JoiValidationPipe(UpdatePersonDtoSchema))
     async updatePerson(@Param('id', ParseIntPipe) id: number, @Body() updatePersonDto: PersonDto) {
         return await this.personService.updatePerson(id, updatePersonDto);
     }
@@ -99,6 +103,7 @@ export class PersonsController {
         status: 200,
         description: 'Liste filtrée des personnes',
     })
+    @UsePipes(new JoiValidationPipe(PersonFilterRequestDtoSchema))
     async filter(@Body() body: PersonFilterRequestDto) {
         const { page, limit, sortBy, orderBy, search, filters } = body;
         return this.personService.filter(page, limit, search, filters, sortBy, orderBy);
